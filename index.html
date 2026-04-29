@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Vortex</title>
+    <link rel="stylesheet" href="./css/styles.css">
+</head>
+
+<body>
+
+    <!-- ===================== -->
+    <!-- HOME VIEW -->
+    <!-- ===================== -->
+    <div class="view active" id="homeView">
+
+        <div class="home-content">
+
+            <div class="center-block">
+
+                <div class="logo-placeholder">
+                    <img src="./assets/vortex.svg" alt="Vortex Logo" class="vortex-logo">
+                </div>
+
+                <h1>Vortex</h1>
+
+            </div>
+
+            <div class="menu-buttons">
+                <button class="nav-btn" data-target="utilitiesView">Utilities +</button>
+                <button>Layers</button>
+                <button>Motion</button>
+                <button>Utilities</button>
+                <button>Settings</button>
+            </div>
+
+        </div>
+
+        <div class="footer">
+            Developed by Kiran
+        </div>
+
+    </div>
+
+
+    <!-- ===================== -->
+    <!-- UTILITIES VIEW -->
+    <!-- ===================== -->
+    <div class="view" id="utilitiesView">
+
+        <button class="back-btn" data-target="homeView">← Back</button>
+
+        <div class="center-block">
+            <h2>Utilities +</h2>
+        </div>
+
+        <div class="menu-buttons">
+            <button class="nav-btn tool-btn" data-target="effectsView">
+                Effects Copy
+            </button>
+        </div>
+
+    </div>
+
+
+    <!-- ===================== -->
+    <!-- EFFECTS VIEW -->
+    <!-- ===================== -->
+    <div class="view" id="effectsView">
+
+        <button class="back-btn" data-target="utilitiesView">← Back</button>
+
+        <div class="center-block">
+            <h2>Effects Copy</h2>
+        </div>
+
+        <div class="menu-buttons">
+            <button id="copyEffectsBtn">Copy Effects</button>
+            <button id="applyEffectsBtn">Apply Effects</button>
+        </div>
+
+    </div>
+
+
+    <!-- ===================== -->
+    <!-- TOAST -->
+    <!-- ===================== -->
+    <div id="toast"></div>
+
+
+    <!-- ===================== -->
+    <!-- SCRIPTS -->
+    <!-- ===================== -->
+    <script src="./CSInterface.js"></script>
+    <script src="./js/aeBridge.js"></script>
+    <script src="./js/main.js"></script>
+
+</body>
+</html>
