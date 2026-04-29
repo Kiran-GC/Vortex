@@ -1,0 +1,39 @@
+VortexHost.registerCommand("motion.listGraphPresets", function () {
+    return {
+        presets: VortexHost.builtInGraphPresets
+    };
+});
+
+VortexHost.registerCommand("motion.createCircleRig", function (payload) {
+    var comp = VortexHost.getActiveComp();
+    var mode = payload.mode === "3d" ? "3d" : "2d";
+    var count = Number(payload.count || 6);
+    var radius = Number(payload.radius || 240);
+    var center = [comp.width / 2, comp.height / 2];
+
+    if (count < 2) {
+        VortexHost.fail("invalid_count", "Circle rig requires at least two controllers.");
+    }
+
+    VortexHost.withUndoGroup("Vortex - Create Circle Rig", function () {
+        var i;
+        for (i = 0; i < count; i++) {
+            var angle = (Math.PI * 2 * i) / count;
+            var x = center[0] + Math.cos(angle) * radius;
+            var y = center[1] + Math.sin(angle) * radius;
+            var controller = comp.layers.addNull();
+            controller.name = "Vortex Rig " + (i + 1);
+            controller.property("Position").setValue([x, y]);
+            if (mode === "3d") {
+                controller.threeDLayer = true;
+            }
+        }
+    });
+
+    return {
+        mode: mode,
+        controllerCount: count,
+        radius: radius,
+        angleStep: 360 / count
+    };
+});
