@@ -1,0 +1,361 @@
+var VortexHost = VortexHost || {};
+
+VortexHost.version = "1.0.0";
+VortexHost.settingsVersion = 1;
+VortexHost.commands = VortexHost.commands || {};
+VortexHost.builtInTextAnimations = [
+  {
+    id: "fade-up",
+    name: "Fade Up",
+    category: "Built In",
+    animator: {
+      property: "ADBE Position",
+      offset: [0, 60]
+    },
+    opacity: 0
+  },
+  {
+    id: "scale-pop",
+    name: "Scale Pop",
+    category: "Built In",
+    animator: {
+      property: "ADBE Scale",
+      offset: [35, 35]
+    },
+    opacity: 0
+  },
+  {
+    id: "tracking-reveal",
+    name: "Tracking Reveal",
+    category: "Built In",
+    animator: {
+      property: "ADBE Text Tracking Amount",
+      offset: 40
+    },
+    opacity: 0
+  }
+];
+VortexHost.builtInGraphPresets = [
+  {
+    id: "ease-soft",
+    name: "Soft Ease",
+    easeIn: 33,
+    easeOut: 33,
+    influenceIn: 55,
+    influenceOut: 55
+  },
+  {
+    id: "ease-snap",
+    name: "Snap Ease",
+    easeIn: 50,
+    easeOut: 80,
+    influenceIn: 25,
+    influenceOut: 80
+  },
+  {
+    id: "ease-smooth",
+    name: "Smooth Drift",
+    easeIn: 20,
+    easeOut: 20,
+    influenceIn: 70,
+    influenceOut: 70
+  }
+];
+
+VortexHost.registerCommand = function(name, handler) {
+  VortexHost.commands[name] = handler;
+};
+
+VortexHost.respondSuccess = function(data) {
+  return JSON.stringify({
+    ok: true,
+    data: data || null,
+    error: null
+  });
+};
+
+VortexHost.respondError = function(code, message, details) {
+  return JSON.stringify({
+    ok: false,
+    data: null,
+    error: {
+      code: code || "UNKNOWN_ERROR",
+      message: message || "Unknown error",
+      details: details || null
+    }
+  });
+};
+
+VortexHost.safeParse = function(jsonText) {
+  if (!jsonText) {
+    return {};
+  }
+  return JSON.parse(jsonText);
+};
+
+VortexHost.fail = function(code, message, details) {
+  throw {
+    isVortexError: true,
+    code: code,
+    message: message,
+    details: details || null
+  };
+};
+
+VortexHost.getActiveComp = function() {
+  var item = app.project ? app.project.activeItem : null;
+  if (!item || !(item instanceof CompItem)) {
+    VortexHost.fail("NO_ACTIVE_COMP", "Open or select an active composition first.");
+  }
+  return item;
+};
+
+VortexHost.getSelectedLayers = function(comp) {
+  var resolvedComp = comp || VortexHost.getActiveComp();
+  var layers = resolvedComp.selectedLayers;
+  if (!layers || !layers.length) {
+    VortexHost.fail("NO_SELECTED_LAYERS", "Select at least one layer first.");
+  }
+  return layers;
+};
+
+VortexHost.withUndoGroup = function(label, runner) {
+  app.beginUndoGroup(label);
+  try {
+    return runner();
+  } finally {
+    app.endUndoGroup();
+  }
+};
+
+VortexHost.getUserDataFolder = function() {
+  var folder = new Folder(Folder.userData.fsName + "/Vortex");
+  if (!folder.exists) {
+    folder.create();
+  }
+  return folder;
+};
+
+VortexHost.getSettingsFile = function() {
+  return new File(VortexHost.getUserDataFolder().fsName + "/settings.json");
+};
+
+VortexHost.ensureFolder = function(folderPath) {
+  var folder = folderPath instanceof Folder ? folderPath : new Folder(folderPath);
+  if (!folder.exists) {
+    folder.create();
+  }
+  return folder;
+};
+
+VortexHost.slugify = function(value) {
+  var text = String(value || "asset").toLowerCase();
+  text = text.replace(/[^a-z0-9]+/g, "-");
+  text = text.replace(/^-+|-+$/g, "");
+  return text || "asset";
+};
+
+VortexHost.makeId = function(prefix) {
+  return [
+    prefix || "vx",
+    new Date().getTime(),
+    Math.floor(Math.random() * 100000)
+  ].join("-");
+};
+
+VortexHost.nowIso = function() {
+  return new Date().toISOString();
+};
+
+VortexHost.readTextFile = function(file) {
+  var target = file instanceof File ? file : new File(file);
+  if (!target.exists) {
+    return null;
+  }
+
+  target.encoding = "UTF-8";
+  if (!target.open("r")) {
+    VortexHost.fail("FILE_READ_ERROR", "Could not open file for reading.", target.fsName);
+  }
+
+  var contents = target.read();
+  target.close();
+  return contents;
+};
+
+VortexHost.writeTextFile = function(file, content) {
+  var target = file instanceof File ? file : new File(file);
+  if (target.parent && !target.parent.exists) {
+    target.parent.create();
+  }
+
+  target.encoding = "UTF-8";
+  if (!target.open("w")) {
+    VortexHost.fail("FILE_WRITE_ERROR", "Could not open file for writing.", target.fsName);
+  }
+
+  target.write(content);
+  target.close();
+  return target;
+};
+
+VortexHost.getDefaultLibraryRoot = function() {
+  return VortexHost.getUserDataFolder().fsName + "/Library";
+};
+
+VortexHost.loadSettings = function() {
+  var file = VortexHost.getSettingsFile();
+  if (!file.exists) {
+    var defaults = {
+      version: VortexHost.settingsVersion,
+      libraryRoot: VortexHost.getDefaultLibraryRoot(),
+      featureFlags: {
+        autoCaptionProviderConfigured: false,
+        backgroundRemovalConfigured: false
+      },
+      services: {
+        captionProvider: null,
+        backgroundRemovalProvider: null
+      }
+    };
+    VortexHost.saveSettings(defaults);
+    return defaults;
+  }
+
+  try {
+    return VortexHost.safeParse(VortexHost.readTextFile(file));
+  } catch (error) {
+    VortexHost.fail("SETTINGS_PARSE_ERROR", "Settings file could not be parsed.", error.toString());
+  }
+};
+
+VortexHost.saveSettings = function(settings) {
+  var payload = settings || {};
+  VortexHost.writeTextFile(VortexHost.getSettingsFile(), JSON.stringify(payload, null, 2));
+  return payload;
+};
+
+VortexHost.getLibraryFolders = function() {
+  var settings = VortexHost.loadSettings();
+  var root = VortexHost.ensureFolder(settings.libraryRoot || VortexHost.getDefaultLibraryRoot());
+  var folders = {
+    root: root,
+    compTemplates: VortexHost.ensureFolder(root.fsName + "/comp-templates"),
+    textAnimations: VortexHost.ensureFolder(root.fsName + "/text-animations"),
+    graphPresets: VortexHost.ensureFolder(root.fsName + "/graph-presets"),
+    toolPresets: VortexHost.ensureFolder(root.fsName + "/tool-presets"),
+    cache: VortexHost.ensureFolder(root.fsName + "/cache")
+  };
+  return folders;
+};
+
+VortexHost.assetTypeDirectoryMap = {
+  compTemplate: "compTemplates",
+  textAnimation: "textAnimations",
+  graphPreset: "graphPresets",
+  toolPreset: "toolPresets"
+};
+
+VortexHost.normalizeAssetType = function(type) {
+  if (!type) {
+    VortexHost.fail("INVALID_ASSET_TYPE", "Asset type is required.");
+  }
+  if (!VortexHost.assetTypeDirectoryMap[type]) {
+    VortexHost.fail("INVALID_ASSET_TYPE", "Unsupported asset type: " + type);
+  }
+  return type;
+};
+
+VortexHost.listLibraryAssets = function(type) {
+  var assetType = VortexHost.normalizeAssetType(type);
+  var folders = VortexHost.getLibraryFolders();
+  var directory = folders[VortexHost.assetTypeDirectoryMap[assetType]];
+  var files = directory.getFiles("*.json");
+  var items = [];
+  var i;
+
+  for (i = 0; i < files.length; i += 1) {
+    try {
+      var payload = VortexHost.safeParse(VortexHost.readTextFile(files[i]));
+      items.push(payload.meta || payload);
+    } catch (error) {
+    }
+  }
+
+  items.sort(function(a, b) {
+    var aDate = a.updatedAt || a.createdAt || "";
+    var bDate = b.updatedAt || b.createdAt || "";
+    if (aDate < bDate) {
+      return 1;
+    }
+    if (aDate > bDate) {
+      return -1;
+    }
+    return 0;
+  });
+
+  return items;
+};
+
+VortexHost.writeLibraryAsset = function(type, name, payload, extraMeta) {
+  var assetType = VortexHost.normalizeAssetType(type);
+  var folders = VortexHost.getLibraryFolders();
+  var directory = folders[VortexHost.assetTypeDirectoryMap[assetType]];
+  var assetId = VortexHost.makeId(VortexHost.slugify(name));
+  var timestamp = VortexHost.nowIso();
+  var meta = {
+    id: assetId,
+    name: name,
+    type: assetType,
+    version: 1,
+    createdAt: timestamp,
+    updatedAt: timestamp,
+    payloadPath: directory.fsName + "/" + assetId + ".json",
+    tags: []
+  };
+  var k;
+
+  if (extraMeta) {
+    for (k in extraMeta) {
+      if (extraMeta.hasOwnProperty(k)) {
+        meta[k] = extraMeta[k];
+      }
+    }
+  }
+
+  var record = {
+    meta: meta,
+    payload: payload
+  };
+  VortexHost.writeTextFile(meta.payloadPath, JSON.stringify(record, null, 2));
+  return record;
+};
+
+VortexHost.getRecentAssets = function(limit) {
+  var max = limit || 6;
+  var merged = [];
+  var types = ["compTemplate", "textAnimation", "graphPreset", "toolPreset"];
+  var i;
+  var j;
+
+  for (i = 0; i < types.length; i += 1) {
+    var items = VortexHost.listLibraryAssets(types[i]);
+    for (j = 0; j < items.length; j += 1) {
+      merged.push(items[j]);
+    }
+  }
+
+  merged.sort(function(a, b) {
+    var aDate = a.updatedAt || a.createdAt || "";
+    var bDate = b.updatedAt || b.createdAt || "";
+    if (aDate < bDate) {
+      return 1;
+    }
+    if (aDate > bDate) {
+      return -1;
+    }
+    return 0;
+  });
+
+  return merged.slice(0, max);
+};
