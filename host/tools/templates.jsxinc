@@ -1,0 +1,134 @@
+VortexHost.registerCommand("templates.saveCompTemplate", function(payload) {
+  var request = payload || {};
+  var comp = VortexHost.getActiveComp();
+  var name = request.name || comp.name;
+  var layers = [];
+  var i;
+
+  for (i = 1; i <= comp.numLayers; i += 1) {
+    var layer = comp.layer(i);
+    layers.push({
+      name: layer.name,
+      matchName: layer.matchName,
+      enabled: layer.enabled,
+      threeD: layer.threeDLayer,
+      inPoint: layer.inPoint,
+      outPoint: layer.outPoint,
+      startTime: layer.startTime,
+      label: layer.label,
+      shy: layer.shy,
+      locked: layer.locked
+    });
+  }
+
+  var record = VortexHost.writeLibraryAsset("compTemplate", name, {
+    comp: {
+      name: comp.name,
+      width: comp.width,
+      height: comp.height,
+      duration: comp.duration,
+      frameRate: comp.frameRate,
+      bgColor: comp.bgColor,
+      workAreaStart: comp.workAreaStart,
+      workAreaDuration: comp.workAreaDuration
+    },
+    layers: layers
+  }, {
+    sourceCompName: comp.name,
+    layerCount: layers.length
+  });
+
+  return {
+    template: record.meta
+  };
+});
+
+VortexHost.registerCommand("templates.loadCompTemplate", function(payload) {
+  var request = payload || {};
+  var templateId = request.templateId;
+  var folder = VortexHost.getLibraryFolders().compTemplates;
+  var files = folder.getFiles("*.json");
+  var i;
+  var record = null;
+
+  if (!templateId) {
+    VortexHost.fail("INVALID_PAYLOAD", "templateId is required.");
+  }
+
+  for (i = 0; i < files.length; i += 1) {
+    var parsed = VortexHost.safeParse(VortexHost.readTextFile(files[i]));
+    if (parsed.meta && parsed.meta.id === templateId) {
+      record = parsed;
+      break;
+    }
+  }
+
+  if (!record) {
+    VortexHost.fail("TEMPLATE_NOT_FOUND", "Template could not be found.");
+  }
+
+  var createdComp = VortexHost.withUndoGroup("Load Vortex Comp Template", function() {
+    return app.project.items.addComp(
+      record.payload.comp.name + " Copy",
+      record.payload.comp.width,
+      record.payload.comp.height,
+      1,
+      record.payload.comp.duration,
+      record.payload.comp.frameRate
+    );
+  });
+
+  createdComp.bgColor = record.payload.comp.bgColor;
+  createdComp.workAreaStart = record.payload.comp.workAreaStart;
+  createdComp.workAreaDuration = record.payload.comp.workAreaDuration;
+
+  return {
+    loadedTemplate: record.meta,
+    compName: createdComp.name
+  };
+});
+
+VortexHost.registerCommand("library.listAssets", function(payload) {
+  var request = payload || {};
+  var type = request.type;
+  if (type) {
+    return {
+      items: VortexHost.listLibraryAssets(type)
+    };
+  }
+
+  return {
+    items: {
+      compTemplates: VortexHost.listLibraryAssets("compTemplate"),
+      textAnimations: VortexHost.listLibraryAssets("textAnimation"),
+      graphPresets: VortexHost.listLibraryAssets("graphPreset"),
+      toolPresets: VortexHost.listLibraryAssets("toolPreset")
+    }
+  };
+});
+
+VortexHost.registerCommand("settings.getConfig", function() {
+  var settings = VortexHost.loadSettings();
+  return {
+    settings: settings,
+    libraryFolders: VortexHost.getLibraryFolders().root.fsName,
+    recentAssets: VortexHost.getRecentAssets(8)
+  };
+});
+
+VortexHost.registerCommand("settings.updateLibraryPath", function(payload) {
+  var request = payload || {};
+  if (!request.libraryRoot) {
+    VortexHost.fail("INVALID_PAYLOAD", "libraryRoot is required.");
+  }
+
+  var settings = VortexHost.loadSettings();
+  settings.libraryRoot = request.libraryRoot;
+  VortexHost.ensureFolder(settings.libraryRoot);
+  VortexHost.saveSettings(settings);
+
+  return {
+    settings: settings,
+    libraryFolders: VortexHost.getLibraryFolders().root.fsName
+  };
+});
