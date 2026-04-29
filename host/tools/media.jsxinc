@@ -1,0 +1,9 @@
+VortexHost.registerCommand("media.importClipboardImage", function (payload) {
+    return {
+        status: "scaffolded",
+        sourceHint: payload.sourceHint || "",
+        backgroundRemoval: payload.backgroundRemoval || "disabled",
+        supportedSources: ["clipboard", "file", "web-image"],
+        message: "Clipboard image import is scaffolded as an ingest pipeline. Native clipboard extraction still needs a dedicated implementation path."
+    };
+});
