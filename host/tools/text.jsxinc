@@ -1,0 +1,92 @@
+VortexHost.parseSrtTimestamp = function (raw) {
+    var normalized = String(raw || "").replace(",", ".");
+    var parts = normalized.split(":");
+    if (parts.length !== 3) {
+        return 0;
+    }
+
+    return (Number(parts[0]) * 3600) + (Number(parts[1]) * 60) + Number(parts[2]);
+};
+
+VortexHost.registerCommand("text.importSrt", function (payload) {
+    var raw = String(payload.raw || "").replace(/\r/g, "").trim();
+    var blocks;
+    var entries = [];
+    var i;
+
+    if (!raw) {
+        VortexHost.fail("missing_srt", "Paste SRT content before trying to parse it.");
+    }
+
+    blocks = raw.split(/\n\n+/);
+
+    for (i = 0; i < blocks.length; i++) {
+        var lines = blocks[i].split("\n");
+        if (lines.length < 2) {
+            continue;
+        }
+
+        var timeLineIndex = lines[0].indexOf("-->") >= 0 ? 0 : 1;
+        var timeLine = lines[timeLineIndex];
+        var textLines = lines.slice(timeLineIndex + 1);
+        var timeParts = timeLine.split("-->");
+
+        if (timeParts.length !== 2) {
+            continue;
+        }
+
+        entries.push({
+            index: entries.length + 1,
+            startSeconds: VortexHost.parseSrtTimestamp(timeParts[0]),
+            endSeconds: VortexHost.parseSrtTimestamp(timeParts[1]),
+            text: textLines.join("\n")
+        });
+    }
+
+    return {
+        entryCount: entries.length,
+        entries: entries
+    };
+});
+
+VortexHost.registerCommand("text.listBuiltInAnimations", function () {
+    return {
+        presets: VortexHost.builtInTextAnimations
+    };
+});
+
+VortexHost.registerCommand("text.split", function (payload) {
+    var raw = String(payload.raw || "");
+    var mode = payload.mode || "characters";
+    var parts = [];
+
+    if (!raw) {
+        VortexHost.fail("missing_text", "Enter source text to preview splitting.");
+    }
+
+    if (mode === "words") {
+        parts = raw.split(/\s+/);
+    } else if (mode === "lines") {
+        parts = raw.split(/\n/);
+    } else {
+        parts = raw.split("");
+    }
+
+    return {
+        mode: mode,
+        count: parts.length,
+        parts: parts
+    };
+});
+
+VortexHost.registerCommand("text.saveAnimationPreset", function (payload) {
+    var name = payload.name || "Text Animation Preset";
+    var asset = VortexHost.writeLibraryAsset("text-animation", name, {
+        preset: payload.preset || {},
+        builtFrom: "panel"
+    }, payload.tags || []);
+
+    return {
+        asset: asset
+    };
+});
