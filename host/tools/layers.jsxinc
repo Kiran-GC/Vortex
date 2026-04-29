@@ -1,0 +1,142 @@
+VortexHost.registerCommand("effects.copy", function () {
+    var layers = VortexHost.getSelectedLayers();
+    var layer = layers[0];
+    var effects = layer.property("ADBE Effect Parade");
+    var data = [];
+    var i;
+    var j;
+
+    if (!effects || effects.numProperties === 0) {
+        VortexHost.fail("missing_effects", "The selected source layer has no effects to copy.");
+    }
+
+    for (i = 1; i <= effects.numProperties; i++) {
+        var effect = effects.property(i);
+        var effectData = {
+            matchName: effect.matchName,
+            name: effect.name,
+            properties: []
+        };
+
+        for (j = 1; j <= effect.numProperties; j++) {
+            var prop = effect.property(j);
+
+            if (prop.propertyValueType !== PropertyValueType.NO_VALUE) {
+                effectData.properties.push({
+                    index: j,
+                    matchName: prop.matchName,
+                    value: prop.value
+                });
+            }
+        }
+
+        data.push(effectData);
+    }
+
+    return {
+        sourceLayer: layer.name,
+        effectCount: data.length,
+        effects: data
+    };
+});
+
+VortexHost.registerCommand("effects.apply", function (payload) {
+    var effectsData = payload.effects;
+    var layers = VortexHost.getSelectedLayers();
+
+    if (!effectsData || !effectsData.length) {
+        VortexHost.fail("missing_payload", "No copied effect payload was provided.");
+    }
+
+    VortexHost.withUndoGroup("Vortex - Apply Effects", function () {
+        var l;
+        var i;
+        var j;
+
+        for (l = 0; l < layers.length; l++) {
+            var target = layers[l];
+            var effects = target.property("ADBE Effect Parade");
+
+            for (i = 0; i < effectsData.length; i++) {
+                var effectData = effectsData[i];
+                var newEffect = effects.addProperty(effectData.matchName);
+
+                for (j = 0; j < effectData.properties.length; j++) {
+                    try {
+                        var propData = effectData.properties[j];
+                        newEffect.property(propData.index).setValue(propData.value);
+                    } catch (error) {}
+                }
+            }
+        }
+    });
+
+    return {
+        targetLayerCount: layers.length
+    };
+});
+
+VortexHost.registerCommand("layers.trueCompDuplicate", function (payload) {
+    var layers = VortexHost.getSelectedLayers();
+    var suffix = payload.suffix || "__vtx";
+    var duplicated = 0;
+
+    VortexHost.withUndoGroup("Vortex - trueComp Duplicate", function () {
+        var i;
+        for (i = 0; i < layers.length; i++) {
+            var layer = layers[i];
+            if (!(layer.source instanceof CompItem)) {
+                continue;
+            }
+
+            var duplicatedComp = layer.source.duplicate();
+            duplicatedComp.name = layer.source.name + suffix;
+            layer.replaceSource(duplicatedComp, false);
+            duplicated++;
+        }
+    });
+
+    if (!duplicated) {
+        VortexHost.fail("unsupported_selection", "Select at least one precomp layer for trueComp duplication.");
+    }
+
+    return {
+        duplicatedCount: duplicated,
+        suffix: suffix
+    };
+});
+
+VortexHost.registerCommand("layers.adjustAnchorPoint", function (payload) {
+    var preset = payload.preset || "center";
+    var layers = VortexHost.getSelectedLayers();
+
+    VortexHost.withUndoGroup("Vortex - Adjust Anchor Point", function () {
+        var i;
+
+        for (i = 0; i < layers.length; i++) {
+            var layer = layers[i];
+            var width = layer.width || 0;
+            var height = layer.height || 0;
+            var anchor = [width / 2, height / 2];
+
+            if (preset === "top-left") {
+                anchor = [0, 0];
+            } else if (preset === "bottom-center") {
+                anchor = [width / 2, height];
+            }
+
+            layer.anchorPoint.setValue(anchor);
+        }
+    });
+
+    return {
+        preset: preset,
+        updatedLayerCount: layers.length
+    };
+});
+
+VortexHost.registerCommand("layers.unprecomp", function () {
+    return {
+        message: "UnPrecomp is scaffolded in the new layer command family and ready for a dedicated implementation pass."
+    };
+});
