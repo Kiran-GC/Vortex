@@ -5,94 +5,63 @@
     <title>Vortex</title>
     <link rel="stylesheet" href="./css/styles.css">
 </head>
-
 <body>
-
-    <!-- ===================== -->
-    <!-- HOME VIEW -->
-    <!-- ===================== -->
-    <div class="view active" id="homeView">
-
-        <div class="home-content">
-
-            <div class="center-block">
-
-                <div class="logo-placeholder">
-                    <img src="./assets/vortex.svg" alt="Vortex Logo" class="vortex-logo">
+    <div class="app-shell">
+        <aside class="sidebar">
+            <div class="brand-block">
+                <img src="./assets/vortex.svg" alt="Vortex Logo" class="vortex-logo">
+                <div>
+                    <h1>Vortex</h1>
+                    <p class="brand-subtitle">After Effects tool platform</p>
                 </div>
-
-                <h1>Vortex</h1>
-
             </div>
 
-            <div class="menu-buttons">
-                <button class="nav-btn" data-target="utilitiesView">Utilities +</button>
-                <button>Layers</button>
-                <button>Motion</button>
-                <button>Utilities</button>
-                <button>Settings</button>
+            <nav class="section-nav" id="sectionNav">
+                <button class="section-link active" data-section="home">Home</button>
+                <button class="section-link" data-section="text">Text</button>
+                <button class="section-link" data-section="motion">Motion</button>
+                <button class="section-link" data-section="layers">Layers</button>
+                <button class="section-link" data-section="media">Media</button>
+                <button class="section-link" data-section="templates">Templates</button>
+                <button class="section-link" data-section="settings">Settings</button>
+            </nav>
+
+            <div class="sidebar-footer">
+                <p>Designed for scalable feature modules, reusable assets, and structured host commands.</p>
             </div>
+        </aside>
 
-        </div>
+        <main class="workspace">
+            <header class="workspace-header">
+                <div>
+                    <p class="eyebrow" id="sectionEyebrow">Platform overview</p>
+                    <h2 id="sectionTitle">Home</h2>
+                </div>
+                <div class="workspace-actions" id="workspaceActions"></div>
+            </header>
 
-        <div class="footer">
-            Developed by Kiran
-        </div>
-
+            <section class="workspace-body">
+                <div class="result-banner hidden" id="resultBanner"></div>
+                <div class="section-content" id="sectionContent"></div>
+            </section>
+        </main>
     </div>
 
+    <div id="toast" class="toast"></div>
 
-    <!-- ===================== -->
-    <!-- UTILITIES VIEW -->
-    <!-- ===================== -->
-    <div class="view" id="utilitiesView">
-
-        <button class="back-btn" data-target="homeView">← Back</button>
-
-        <div class="center-block">
-            <h2>Utilities +</h2>
-        </div>
-
-        <div class="menu-buttons">
-            <button class="nav-btn tool-btn" data-target="effectsView">
-                Effects Copy
-            </button>
-        </div>
-
-    </div>
-
-
-    <!-- ===================== -->
-    <!-- EFFECTS VIEW -->
-    <!-- ===================== -->
-    <div class="view" id="effectsView">
-
-        <button class="back-btn" data-target="utilitiesView">← Back</button>
-
-        <div class="center-block">
-            <h2>Effects Copy</h2>
-        </div>
-
-        <div class="menu-buttons">
-            <button id="copyEffectsBtn">Copy Effects</button>
-            <button id="applyEffectsBtn">Apply Effects</button>
-        </div>
-
-    </div>
-
-
-    <!-- ===================== -->
-    <!-- TOAST -->
-    <!-- ===================== -->
-    <div id="toast"></div>
-
-
-    <!-- ===================== -->
-    <!-- SCRIPTS -->
-    <!-- ===================== -->
     <script src="./CSInterface.js"></script>
-    <script src="./js/aeBridge.js"></script>
+    <script src="./js/store.js"></script>
+    <script src="./js/notifications.js"></script>
+    <script src="./js/host-bridge.js"></script>
+    <script src="./js/command-client.js"></script>
+    <script src="./js/modules/home.js"></script>
+    <script src="./js/modules/text.js"></script>
+    <script src="./js/modules/motion.js"></script>
+    <script src="./js/modules/layers.js"></script>
+    <script src="./js/modules/media.js"></script>
+    <script src="./js/modules/templates.js"></script>
+    <script src="./js/modules/settings.js"></script>
+    <script src="./js/app-shell.js"></script>
     <script src="./js/main.js"></script>
-
 </body>
 </html>
