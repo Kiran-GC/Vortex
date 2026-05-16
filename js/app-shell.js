@@ -45,10 +45,14 @@
 
             VortexApp.commandClient.execute("settings.getConfig", {}, function (result) {
                 if (result.ok) {
-                    VortexApp.store.setLibrary(result.data.library);
-                    VortexApp.store.setServiceConfig(result.data.serviceConfig);
+                    VortexApp.store.setLibrary(result.data.library || null);
+                    VortexApp.store.setServiceConfig(result.data.serviceConfig || {});
                     VortexApp.store.setRecentAssets(result.data.recentAssets || []);
-                    VortexApp.notifications.setBanner("Host command system ready. Library initialized at " + result.data.library.rootPath + ".");
+                    if (result.data.library && result.data.library.rootPath) {
+                        VortexApp.notifications.setBanner("Host command system ready. Library initialized at " + result.data.library.rootPath + ".");
+                    } else {
+                        VortexApp.notifications.setBanner("Host command system ready.");
+                    }
                 } else {
                     VortexApp.notifications.setBanner(result.error.message, "error");
                 }
