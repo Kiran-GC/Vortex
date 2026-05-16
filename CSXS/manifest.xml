@@ -10,7 +10,7 @@
 
     <ExecutionEnvironment>
         <HostList>
-            <Host Name="AEFT" Version="[16.0,26.9]"/>
+            <Host Name="AEFT" Version="[16.0,27.0]"/>
         </HostList>
         <LocaleList>
             <Locale Code="All"/>
