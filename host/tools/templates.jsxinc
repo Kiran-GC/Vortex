@@ -1,134 +1,84 @@
-VortexHost.registerCommand("templates.saveCompTemplate", function(payload) {
-  var request = payload || {};
-  var comp = VortexHost.getActiveComp();
-  var name = request.name || comp.name;
-  var layers = [];
-  var i;
+VortexHost.registerCommand("templates.saveCompTemplate", function (payload) {
+    var comp = VortexHost.getActiveComp();
+    var name = payload.name || (comp.name + " Template");
+    var cleanedTags = [];
+    var i;
 
-  for (i = 1; i <= comp.numLayers; i += 1) {
-    var layer = comp.layer(i);
-    layers.push({
-      name: layer.name,
-      matchName: layer.matchName,
-      enabled: layer.enabled,
-      threeD: layer.threeDLayer,
-      inPoint: layer.inPoint,
-      outPoint: layer.outPoint,
-      startTime: layer.startTime,
-      label: layer.label,
-      shy: layer.shy,
-      locked: layer.locked
-    });
-  }
-
-  var record = VortexHost.writeLibraryAsset("compTemplate", name, {
-    comp: {
-      name: comp.name,
-      width: comp.width,
-      height: comp.height,
-      duration: comp.duration,
-      frameRate: comp.frameRate,
-      bgColor: comp.bgColor,
-      workAreaStart: comp.workAreaStart,
-      workAreaDuration: comp.workAreaDuration
-    },
-    layers: layers
-  }, {
-    sourceCompName: comp.name,
-    layerCount: layers.length
-  });
-
-  return {
-    template: record.meta
-  };
-});
-
-VortexHost.registerCommand("templates.loadCompTemplate", function(payload) {
-  var request = payload || {};
-  var templateId = request.templateId;
-  var folder = VortexHost.getLibraryFolders().compTemplates;
-  var files = folder.getFiles("*.json");
-  var i;
-  var record = null;
-
-  if (!templateId) {
-    VortexHost.fail("INVALID_PAYLOAD", "templateId is required.");
-  }
-
-  for (i = 0; i < files.length; i += 1) {
-    var parsed = VortexHost.safeParse(VortexHost.readTextFile(files[i]));
-    if (parsed.meta && parsed.meta.id === templateId) {
-      record = parsed;
-      break;
+    if (payload.tags && payload.tags.length) {
+        for (i = 0; i < payload.tags.length; i++) {
+            var tag = String(payload.tags[i]).replace(/^\s+|\s+$/g, "");
+            if (tag) {
+                cleanedTags.push(tag);
+            }
+        }
     }
-  }
 
-  if (!record) {
-    VortexHost.fail("TEMPLATE_NOT_FOUND", "Template could not be found.");
-  }
+    var asset = VortexHost.writeLibraryAsset("comp-template", name, {
+        compName: comp.name,
+        width: comp.width,
+        height: comp.height,
+        duration: comp.duration,
+        frameRate: comp.frameRate,
+        layerCount: comp.numLayers
+    }, cleanedTags);
 
-  var createdComp = VortexHost.withUndoGroup("Load Vortex Comp Template", function() {
-    return app.project.items.addComp(
-      record.payload.comp.name + " Copy",
-      record.payload.comp.width,
-      record.payload.comp.height,
-      1,
-      record.payload.comp.duration,
-      record.payload.comp.frameRate
-    );
-  });
-
-  createdComp.bgColor = record.payload.comp.bgColor;
-  createdComp.workAreaStart = record.payload.comp.workAreaStart;
-  createdComp.workAreaDuration = record.payload.comp.workAreaDuration;
-
-  return {
-    loadedTemplate: record.meta,
-    compName: createdComp.name
-  };
-});
-
-VortexHost.registerCommand("library.listAssets", function(payload) {
-  var request = payload || {};
-  var type = request.type;
-  if (type) {
     return {
-      items: VortexHost.listLibraryAssets(type)
+        asset: asset
     };
-  }
+});
 
-  return {
-    items: {
-      compTemplates: VortexHost.listLibraryAssets("compTemplate"),
-      textAnimations: VortexHost.listLibraryAssets("textAnimation"),
-      graphPresets: VortexHost.listLibraryAssets("graphPreset"),
-      toolPresets: VortexHost.listLibraryAssets("toolPreset")
+VortexHost.registerCommand("templates.loadCompTemplate", function (payload) {
+    var id = payload.id;
+    var assets = VortexHost.listLibraryAssets("comp-template");
+    var i;
+
+    for (i = 0; i < assets.length; i++) {
+        if (assets[i].id === id) {
+            return {
+                asset: assets[i]
+            };
+        }
     }
-  };
+
+    VortexHost.fail("asset_not_found", "Could not find the requested comp template.");
 });
 
-VortexHost.registerCommand("settings.getConfig", function() {
-  var settings = VortexHost.loadSettings();
-  return {
-    settings: settings,
-    libraryFolders: VortexHost.getLibraryFolders().root.fsName,
-    recentAssets: VortexHost.getRecentAssets(8)
-  };
+VortexHost.registerCommand("library.listAssets", function (payload) {
+    return {
+        assets: VortexHost.listLibraryAssets(payload.type || null)
+    };
 });
 
-VortexHost.registerCommand("settings.updateLibraryPath", function(payload) {
-  var request = payload || {};
-  if (!request.libraryRoot) {
-    VortexHost.fail("INVALID_PAYLOAD", "libraryRoot is required.");
-  }
+VortexHost.registerCommand("settings.getConfig", function () {
+    var settings = VortexHost.loadSettings();
+    var library = VortexHost.getLibraryFolders();
 
-  var settings = VortexHost.loadSettings();
-  settings.libraryRoot = request.libraryRoot;
-  VortexHost.ensureFolder(settings.libraryRoot);
-  VortexHost.saveSettings(settings);
+    return {
+        version: VortexHost.version,
+        library: {
+            rootPath: library.rootPath,
+            categories: ["comp-templates", "text-animations", "graph-presets", "tool-presets", "cache"]
+        },
+        serviceConfig: settings.serviceConfig,
+        recentAssets: VortexHost.getRecentAssets()
+    };
+});
 
-  return {
-    settings: settings,
-    libraryFolders: VortexHost.getLibraryFolders().root.fsName
-  };
+VortexHost.registerCommand("settings.updateLibraryPath", function (payload) {
+    var path = payload.path;
+    var settings = VortexHost.loadSettings();
+
+    if (!path) {
+        VortexHost.fail("missing_path", "Provide a library path before saving settings.");
+    }
+
+    settings.libraryPath = path;
+    VortexHost.saveSettings(settings);
+
+    return {
+        library: {
+            rootPath: VortexHost.getLibraryFolders().rootPath
+        },
+        serviceConfig: settings.serviceConfig
+    };
 });
