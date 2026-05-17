@@ -12,6 +12,16 @@
             };
         }
 
+        if (rawResult === "EvalScript error.") {
+            return {
+                ok: false,
+                error: {
+                    code: "evalscript_error",
+                    message: "After Effects could not execute the host script."
+                }
+            };
+        }
+
         try {
             return JSON.parse(rawResult);
         } catch (error) {
