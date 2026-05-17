@@ -10,6 +10,18 @@
         document.getElementById("sectionEyebrow").textContent = meta.eyebrow;
     }
 
+    function updateHostStatus() {
+        var hostStatus = document.getElementById("hostStatus");
+        var hostState = VortexApp.store.getState().hostState;
+
+        if (!hostStatus || !hostState) {
+            return;
+        }
+
+        hostStatus.textContent = hostState.message;
+        hostStatus.className = hostState.connected ? "host-pill is-live" : "host-pill is-error";
+    }
+
     function updateActiveNav(sectionId) {
         var buttons = document.querySelectorAll(".section-link");
 
@@ -21,7 +33,7 @@
 
     function renderActions(sectionId) {
         var actionsRoot = document.getElementById("workspaceActions");
-        var defaultAction = '<button data-section-jump="home">Overview</button>';
+        var defaultAction = sectionId === "home" ? "" : '<button data-section-jump="home">Main Menu</button>';
 
         if (sectionId === "layers") {
             actionsRoot.innerHTML = defaultAction + '<button data-section-jump="templates">Library</button>';
@@ -43,21 +55,34 @@
         bootstrap: function () {
             var shell = this;
 
-            VortexApp.commandClient.execute("settings.getConfig", {}, function (result) {
-                if (result.ok) {
-                    VortexApp.store.setLibrary(result.data.library || null);
-                    VortexApp.store.setServiceConfig(result.data.serviceConfig || {});
-                    VortexApp.store.setRecentAssets(result.data.recentAssets || []);
-                    if (result.data.library && result.data.library.rootPath) {
-                        VortexApp.notifications.setBanner("Host command system ready. Library initialized at " + result.data.library.rootPath + ".");
-                    } else {
-                        VortexApp.notifications.setBanner("Host command system ready.");
-                    }
-                } else {
-                    VortexApp.notifications.setBanner(result.error.message, "error");
+            VortexApp.commandClient.execute("vortex.ping", {}, function (pingResult) {
+                if (!pingResult.ok) {
+                    VortexApp.store.setHostState(false, "After Effects host unavailable");
+                    VortexApp.notifications.setBanner("The After Effects host did not respond. Recopy the extension and restart After Effects.", "error");
+                    updateHostStatus();
+                    shell.renderCurrentSection();
+                    return;
                 }
 
-                shell.renderCurrentSection();
+                VortexApp.store.setHostState(true, "After Effects host connected");
+                updateHostStatus();
+
+                VortexApp.commandClient.execute("settings.getConfig", {}, function (result) {
+                    if (result.ok) {
+                        VortexApp.store.setLibrary(result.data.library || null);
+                        VortexApp.store.setServiceConfig(result.data.serviceConfig || {});
+                        VortexApp.store.setRecentAssets(result.data.recentAssets || []);
+                        if (result.data.library && result.data.library.rootPath) {
+                            VortexApp.notifications.setBanner("Host command system ready. Library initialized at " + result.data.library.rootPath + ".");
+                        } else {
+                            VortexApp.notifications.setBanner("Host command system ready.");
+                        }
+                    } else {
+                        VortexApp.notifications.setBanner(result.error.message, "error");
+                    }
+
+                    shell.renderCurrentSection();
+                });
             });
         },
         navigate: function (sectionId) {
@@ -75,6 +100,7 @@
             var contentRoot = document.getElementById("sectionContent");
 
             updateHeader(section.meta);
+            updateHostStatus();
             updateActiveNav(sectionId);
             renderActions(sectionId);
 
@@ -89,6 +115,10 @@
                 button.addEventListener("click", function () {
                     shell.navigate(button.getAttribute("data-section"));
                 });
+            });
+
+            document.getElementById("brandHomeButton").addEventListener("click", function () {
+                shell.navigate("home");
             });
         }
     };
