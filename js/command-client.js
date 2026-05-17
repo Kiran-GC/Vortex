@@ -12,6 +12,16 @@
             };
         }
 
+        if (rawResult === "HOST_BOOTSTRAP_FAILED") {
+            return {
+                ok: false,
+                error: {
+                    code: "host_bootstrap_failed",
+                    message: "The Vortex host script loaded, but the command bridge was not created."
+                }
+            };
+        }
+
         if (rawResult === "EvalScript error.") {
             return {
                 ok: false,
