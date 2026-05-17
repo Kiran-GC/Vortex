@@ -7,15 +7,17 @@
 </head>
 <body>
     <div class="app-shell">
-        <aside class="sidebar">
-            <div class="brand-block">
-                <img src="./assets/vortex.svg" alt="Vortex Logo" class="vortex-logo">
-                <div>
-                    <h1>Vortex</h1>
-                    <p class="brand-subtitle">After Effects tool platform</p>
-                </div>
+        <header class="topbar">
+            <div class="topbar-main">
+                <button class="brand-button" id="brandHomeButton" type="button">
+                    <img src="./assets/vortex.svg" alt="Vortex Logo" class="vortex-logo">
+                    <span class="brand-copy">
+                        <strong>Vortex</strong>
+                        <span class="brand-subtitle">After Effects utilities</span>
+                    </span>
+                </button>
+                <div class="host-pill" id="hostStatus">Connecting to After Effects...</div>
             </div>
-
             <nav class="section-nav" id="sectionNav">
                 <button class="section-link active" data-section="home">Home</button>
                 <button class="section-link" data-section="text">Text</button>
@@ -25,17 +27,13 @@
                 <button class="section-link" data-section="templates">Templates</button>
                 <button class="section-link" data-section="settings">Settings</button>
             </nav>
-
-            <div class="sidebar-footer">
-                <p>Designed for scalable feature modules, reusable assets, and structured host commands.</p>
-            </div>
-        </aside>
+        </header>
 
         <main class="workspace">
             <header class="workspace-header">
                 <div>
-                    <p class="eyebrow" id="sectionEyebrow">Platform overview</p>
-                    <h2 id="sectionTitle">Home</h2>
+                    <p class="eyebrow" id="sectionEyebrow">Main menu</p>
+                    <h2 id="sectionTitle">Vortex</h2>
                 </div>
                 <div class="workspace-actions" id="workspaceActions"></div>
             </header>
