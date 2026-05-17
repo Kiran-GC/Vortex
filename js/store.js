@@ -8,6 +8,10 @@
         recentAssets: [],
         formState: {},
         lastResult: null,
+        hostState: {
+            connected: false,
+            message: "Connecting to After Effects..."
+        },
         serviceConfig: {
             captionProvider: "manual",
             backgroundRemoval: "disabled"
@@ -38,6 +42,12 @@
         },
         setLastResult: function (result) {
             state.lastResult = result;
+        },
+        setHostState: function (connected, message) {
+            state.hostState = {
+                connected: !!connected,
+                message: message || (connected ? "Connected" : "Disconnected")
+            };
         },
         setFormState: function (key, value) {
             state.formState[key] = value;
