@@ -14,33 +14,27 @@
     VortexApp.modules = VortexApp.modules || {};
     VortexApp.modules.home = {
         meta: {
-            title: "Home",
-            eyebrow: "Platform overview"
+            title: "Vortex",
+            eyebrow: "Main menu"
         },
         render: function () {
             var state = VortexApp.store.getState();
             var recentAssets = state.recentAssets || [];
+            var hostState = state.hostState || {};
 
             return '' +
-                '<section class="hero-panel">' +
-                    "<div>" +
-                        "<h3>Vortex is now structured as a tool platform</h3>" +
-                        '<p class="card-copy">The shell is organized by subsystem so future tools can slot into Text, Motion, Layers, Media, Templates, and Settings without reshaping the panel again.</p>' +
-                    "</div>" +
-                    '<div class="hero-metrics">' +
-                        '<div class="metric"><span class="meta-label">Sections</span><strong>7</strong></div>' +
-                        '<div class="metric"><span class="meta-label">Host protocol</span><strong>Named commands</strong></div>' +
-                        '<div class="metric"><span class="meta-label">Library mode</span><strong>Shared Vortex library</strong></div>' +
-                    "</div>" +
-                "</section>" +
-                '<section class="card-grid">' +
+                '<section class="menu-grid">' +
+                    '<button class="menu-card" data-nav-section="text"><strong>Text</strong><span>Captions, SRT, split tools, saved animations</span></button>' +
+                    '<button class="menu-card" data-nav-section="motion"><strong>Motion</strong><span>Circle rigs, graph presets, proximity tools</span></button>' +
+                    '<button class="menu-card" data-nav-section="layers"><strong>Layers</strong><span>Effects copy, trueComp, anchor tools</span></button>' +
+                    '<button class="menu-card" data-nav-section="media"><strong>Media</strong><span>Clipboard image import and future cleanup tools</span></button>' +
+                    '<button class="menu-card" data-nav-section="templates"><strong>Templates</strong><span>Comp templates and reusable preset storage</span></button>' +
+                    '<button class="menu-card" data-nav-section="settings"><strong>Settings</strong><span>Library path and host configuration</span></button>' +
+                '</section>' +
+                '<section class="card-grid compact-grid">' +
                     '<article class="card">' +
-                        '<div class="card-header"><h3>Quick Actions</h3><span class="tool-tag">Working now</span></div>' +
-                        '<p class="card-copy">Launch the migrated effect copy workflow, inspect saved library assets, or move into a subsystem to continue building.</p>' +
-                        '<div class="card-actions">' +
-                            '<button data-nav-section="layers">Open Layers</button>' +
-                            '<button data-nav-section="templates">Browse Templates</button>' +
-                        "</div>" +
+                        '<div class="card-header"><h3>Host Status</h3><span class="tool-tag">' + (hostState.connected ? 'Connected' : 'Offline') + '</span></div>' +
+                        '<p class="card-copy">' + (hostState.message || 'Waiting for After Effects host.') + '</p>' +
                     "</article>" +
                     '<article class="card">' +
                         '<div class="card-header"><h3>Recent Tools</h3><span class="tool-tag">Session state</span></div>' +
@@ -49,7 +43,7 @@
                     '<article class="card">' +
                         '<div class="card-header"><h3>Recent Assets</h3><span class="tool-tag">Library</span></div>' +
                         (recentAssets.length ? '<ul class="asset-list">' + recentAssets.map(function (asset) {
-                            return '<li class="asset-item"><strong class="asset-title">' + asset.name + '</strong><span class="list-meta">' + asset.type + " • " + asset.updatedAt + "</span></li>";
+                            return '<li class="asset-item"><strong class="asset-title">' + asset.name + '</strong><span class="list-meta">' + asset.type + " - " + asset.updatedAt + "</span></li>";
                         }).join("") + "</ul>" : '<div class="empty-state"><p class="empty-copy">Save templates or presets and they will show up here for quick reuse.</p></div>') +
                     "</article>" +
                 "</section>";
