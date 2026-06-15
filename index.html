@@ -50,6 +50,9 @@
             <button class="nav-btn tool-btn" data-target="effectsView">
                 Effects Copy
             </button>
+            <button class="nav-btn tool-btn" data-target="cleanupView">
+                Project Cleanup
+            </button>
         </div>
 
     </div>
@@ -65,6 +68,25 @@
         <div class="menu-buttons">
             <button id="copyEffectsBtn">Copy Effects</button>
             <button id="applyEffectsBtn">Apply Effects</button>
+        </div>
+
+    </div>
+
+    <div class="view" id="cleanupView">
+
+        <button class="back-btn" data-target="utilitiesView">Back</button>
+
+        <div class="center-block">
+            <h2>Project Cleanup</h2>
+        </div>
+
+        <div class="menu-buttons cleanup-actions">
+            <button id="refreshStatsBtn">Refresh Stats</button>
+            <button id="removeUnusedBtn">Remove Unused</button>
+        </div>
+
+        <div class="stats-panel" id="statsPanel">
+            <div class="stats-empty">Project stats will appear here.</div>
         </div>
 
     </div>
