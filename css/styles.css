@@ -68,7 +68,8 @@ h2 {
 }
 
 #utilitiesView .menu-buttons,
-#effectsView .menu-buttons {
+#effectsView .menu-buttons,
+#cleanupView .menu-buttons {
     flex-direction: row;
     flex-wrap: wrap;
     gap: 10px;
@@ -148,4 +149,49 @@ button:disabled:hover {
     filter:
         drop-shadow(0 0 6px rgba(0, 195, 255, 0.2))
         drop-shadow(0 0 18px rgba(0, 195, 255, 0.08));
+}
+
+.cleanup-actions {
+    margin-bottom: 18px;
+}
+
+.stats-panel {
+    background-color: #171717;
+    border: 1px solid #2c2c2c;
+    border-radius: 8px;
+    padding: 16px;
+    min-height: 180px;
+}
+
+.stats-empty {
+    color: #777777;
+    font-size: 13px;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.stat-card {
+    background-color: #1e1e1e;
+    border: 1px solid #2c2c2c;
+    border-radius: 6px;
+    padding: 12px;
+}
+
+.stat-label {
+    display: block;
+    font-size: 11px;
+    color: #888888;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.stat-value {
+    display: block;
+    font-size: 22px;
+    color: #ffffff;
 }
