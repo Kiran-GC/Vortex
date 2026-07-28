@@ -25,7 +25,7 @@
             <div class="menu-buttons">
                 <button class="nav-btn" data-target="utilitiesView">Utilities +</button>
                 <button>Layers</button>
-                <button>Motion</button>
+                <button class="nav-btn" data-target="motionView">Motion</button>
                 <button>Utilities</button>
                 <button>Settings</button>
             </div>
@@ -50,9 +50,6 @@
             <button class="nav-btn tool-btn" data-target="effectsView">
                 Effects Copy
             </button>
-            <button class="nav-btn tool-btn" data-target="cleanupView">
-                Project Cleanup
-            </button>
         </div>
 
     </div>
@@ -72,22 +69,22 @@
 
     </div>
 
-    <div class="view" id="cleanupView">
+    <div class="view" id="motionView">
 
-        <button class="back-btn" data-target="utilitiesView">Back</button>
+        <button class="back-btn" data-target="homeView">Back</button>
 
         <div class="center-block">
-            <h2>Project Cleanup</h2>
+            <h2>Motion</h2>
+            <p class="view-description">Apply .ffx animation presets to selected text layers.</p>
         </div>
 
-        <div class="menu-buttons cleanup-actions">
-            <button id="refreshStatsBtn">Refresh Stats</button>
-            <button id="removeUnusedBtn">Remove Unused</button>
+        <div class="menu-buttons preset-actions">
+            <button id="importTextPresetBtn">Import .ffx</button>
+            <button id="previewTextPresetBtn" disabled>Preview</button>
+            <button id="applyTextPresetBtn" disabled>Apply to Text</button>
         </div>
 
-        <div class="stats-panel" id="statsPanel">
-            <div class="stats-empty">Project stats will appear here.</div>
-        </div>
+        <div class="preset-list" id="textPresetList"></div>
 
     </div>
 
