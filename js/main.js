@@ -93,6 +93,11 @@ document.addEventListener("DOMContentLoaded", function () {
     var previewTextPresetBtn = document.getElementById("previewTextPresetBtn");
     var applyTextPresetBtn = document.getElementById("applyTextPresetBtn");
     var textPresetList = document.getElementById("textPresetList");
+    var panelPreviewTextInput = document.getElementById("panelPreviewTextInput");
+    var panelPreviewStyleSelect = document.getElementById("panelPreviewStyleSelect");
+    var panelPreviewText = document.getElementById("panelPreviewText");
+    var replayPanelPreviewBtn = document.getElementById("replayPanelPreviewBtn");
+    var panelPreviewStyles = ["rise", "pop", "slide", "type", "blur"];
 
     function loadTextAnimationPresets() {
         var savedPresets = localStorage.getItem(textPresetStorageKey);
@@ -115,6 +120,33 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         return textAnimationPresets[selectedTextPresetIndex];
+    }
+
+    function updatePanelPreviewText() {
+        if (!panelPreviewText) {
+            return;
+        }
+
+        panelPreviewText.textContent = panelPreviewTextInput && panelPreviewTextInput.value
+            ? panelPreviewTextInput.value
+            : "Vortex Preview";
+    }
+
+    function replayPanelPreview() {
+        if (!panelPreviewText) {
+            return;
+        }
+
+        var selectedStyle = panelPreviewStyleSelect ? panelPreviewStyleSelect.value : "rise";
+
+        updatePanelPreviewText();
+        panelPreviewStyles.forEach(function (style) {
+            panelPreviewText.classList.remove("preview-" + style);
+        });
+
+        panelPreviewText.classList.remove("is-replaying");
+        panelPreviewText.offsetWidth;
+        panelPreviewText.classList.add("is-replaying", "preview-" + selectedStyle);
     }
 
     function updateTextPresetActions() {
@@ -158,6 +190,7 @@ document.addEventListener("DOMContentLoaded", function () {
             presetButton.addEventListener("click", function () {
                 selectedTextPresetIndex = index;
                 renderTextPresetList();
+                replayPanelPreview();
             });
 
             textPresetList.appendChild(presetButton);
@@ -209,6 +242,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 saveTextAnimationPresets();
                 renderTextPresetList();
+                replayPanelPreview();
                 showToast(duplicatePreset ? "Preset already imported" : "Preset imported");
             });
         });
@@ -226,7 +260,26 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
+    if (panelPreviewTextInput) {
+        panelPreviewTextInput.addEventListener("input", function () {
+            replayPanelPreview();
+        });
+    }
+
+    if (panelPreviewStyleSelect) {
+        panelPreviewStyleSelect.addEventListener("change", function () {
+            replayPanelPreview();
+        });
+    }
+
+    if (replayPanelPreviewBtn) {
+        replayPanelPreviewBtn.addEventListener("click", function () {
+            replayPanelPreview();
+        });
+    }
+
     loadTextAnimationPresets();
     renderTextPresetList();
+    replayPanelPreview();
 
 });
