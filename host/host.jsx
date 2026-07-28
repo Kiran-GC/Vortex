@@ -131,14 +131,19 @@ function getTextAnimationPresetFile(encodedPath) {
 }
 
 function importTextAnimationPreset() {
-    var presetFile = File.openDialog("Import a text animation preset", "After Effects Preset:*.ffx");
+    var filter = /windows/i.test($.os)
+        ? "After Effects Preset:*.ffx"
+        : function (file) {
+            return file instanceof File && /\.ffx$/i.test(file.name);
+        };
+    var presetFile = File.openDialog("Import a text animation preset", filter);
 
     if (!presetFile) {
         return null;
     }
 
     return JSON.stringify({
-        name: presetFile.displayName,
+        name: presetFile.displayName || presetFile.name,
         path: presetFile.fsName
     });
 }
