@@ -84,6 +84,24 @@
             <button id="applyTextPresetBtn" disabled>Apply to Text</button>
         </div>
 
+        <div class="panel-preview">
+            <div class="preview-toolbar">
+                <input id="panelPreviewTextInput" type="text" value="Vortex Preview" aria-label="Preview text">
+                <select id="panelPreviewStyleSelect" aria-label="Preview style">
+                    <option value="rise">Rise</option>
+                    <option value="pop">Pop</option>
+                    <option value="slide">Slide</option>
+                    <option value="type">Type</option>
+                    <option value="blur">Blur</option>
+                </select>
+                <button id="replayPanelPreviewBtn" type="button">Replay</button>
+            </div>
+
+            <div class="preview-stage" aria-live="polite">
+                <div id="panelPreviewText" class="panel-preview-text preview-rise">Vortex Preview</div>
+            </div>
+        </div>
+
         <div class="preset-list" id="textPresetList"></div>
 
     </div>
