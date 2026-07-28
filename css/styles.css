@@ -76,20 +76,39 @@ h2 {
     justify-content: flex-start;
 }
 
-button {
+button,
+input,
+select {
+    font-family: inherit;
+}
+
+button,
+input,
+select {
     padding: 12px;
     background-color: #1e1e1e;
     border: 1px solid #2c2c2c;
     color: #ffffff;
     font-size: 14px;
     border-radius: 6px;
+}
+
+button,
+select {
     cursor: pointer;
+}
+
+button {
     transition: border-color 0.2s ease, color 0.2s ease;
 }
 
-button:hover {
+button:hover,
+select:hover,
+input:focus,
+select:focus {
     border-color: #00c3ff;
     color: #00c3ff;
+    outline: none;
 }
 
 button:disabled {
@@ -162,10 +181,78 @@ button:disabled:hover {
     margin-bottom: 16px;
 }
 
+.panel-preview {
+    margin-bottom: 16px;
+}
+
+.preview-toolbar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 92px 72px;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.preview-toolbar input,
+.preview-toolbar select,
+.preview-toolbar button {
+    min-width: 0;
+    width: 100%;
+    font-size: 12px;
+    padding: 9px 10px;
+}
+
+.preview-stage {
+    align-items: center;
+    background:
+        linear-gradient(135deg, rgba(0, 195, 255, 0.12), transparent 42%),
+        #161616;
+    border: 1px solid #2c2c2c;
+    border-radius: 8px;
+    display: flex;
+    height: 112px;
+    justify-content: center;
+    overflow: hidden;
+    padding: 14px;
+}
+
+.panel-preview-text {
+    color: #ffffff;
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 1.1;
+    max-width: 100%;
+    overflow: hidden;
+    text-align: center;
+    text-overflow: ellipsis;
+    text-shadow: 0 0 16px rgba(0, 195, 255, 0.35);
+    white-space: nowrap;
+}
+
+.preview-rise.is-replaying {
+    animation: previewRise 1.2s ease both;
+}
+
+.preview-pop.is-replaying {
+    animation: previewPop 0.9s cubic-bezier(0.2, 1.2, 0.3, 1) both;
+}
+
+.preview-slide.is-replaying {
+    animation: previewSlide 1s ease both;
+}
+
+.preview-type.is-replaying {
+    animation: previewType 1.4s steps(18, end) both;
+}
+
+.preview-blur.is-replaying {
+    animation: previewBlur 1.1s ease both;
+}
+
 .preset-list {
     display: flex;
     flex-direction: column;
     gap: 8px;
+    overflow: auto;
 }
 
 .preset-empty {
@@ -180,4 +267,73 @@ button:disabled:hover {
 .preset-item.selected {
     border-color: #00c3ff;
     color: #00c3ff;
+}
+
+@keyframes previewRise {
+    0% {
+        opacity: 0;
+        transform: translateY(26px) scale(0.98);
+    }
+
+    60% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes previewPop {
+    0% {
+        opacity: 0;
+        transform: scale(0.62);
+    }
+
+    72% {
+        opacity: 1;
+        transform: scale(1.08);
+    }
+
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes previewSlide {
+    0% {
+        opacity: 0;
+        transform: translateX(-58px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes previewType {
+    0% {
+        max-width: 0;
+    }
+
+    100% {
+        max-width: 100%;
+    }
+}
+
+@keyframes previewBlur {
+    0% {
+        filter: blur(12px);
+        opacity: 0;
+        transform: scale(1.08);
+    }
+
+    100% {
+        filter: blur(0);
+        opacity: 1;
+        transform: scale(1);
+    }
 }
